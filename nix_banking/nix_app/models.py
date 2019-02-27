@@ -51,6 +51,7 @@ class Transfer(models.Model):
 
     def delete(self, *args, **kwargs):
         self.is_deleted = True
+        self.save()
 
     def hard_delete(self):
         super(Transfer, self).delete()
@@ -77,19 +78,21 @@ class Transfer(models.Model):
 
     def get_data_from_dict(self, transfer_data):
         try:
-            self.user_id = User.objects.get(id=transfer_data["user_id"])
+            if transfer_data.get("user_id"):
+                self.user_id = User.objects.get(id=transfer_data["user_id"])
         except ObjectDoesNotExist:
             raise ObjectDoesNotExist("User with id {} does not exist.".format(transfer_data["user_id"]))
-        self.payers_name = transfer_data["payers_name"]
-        self.payers_bank = transfer_data["payers_bank"]
-        self.payers_agency = transfer_data["payers_agency"]
-        self.receivers_name = transfer_data["receivers_name"]
-        self.receivers_bank = transfer_data["receivers_bank"]
-        self.receivers_agency = transfer_data["receivers_agency"]
-        self.receivers_account = transfer_data["receivers_account"]
-        self.transfer_value = transfer_data["transfer_value"]
-        self.transfer_type = transfer_data["transfer_type"]
-        if transfer_data["creation_date"]:
+        self.payers_name = transfer_data.get("payers_name") if transfer_data.get("payers_name") else ""
+        self.payers_bank = transfer_data.get("payers_bank") if transfer_data.get("payers_bank") else ""
+        self.payers_agency = transfer_data.get("payers_agency") if transfer_data.get("payers_agency") else ""
+        self.receivers_name = transfer_data.get("receivers_name") if transfer_data.get("receivers_name") else ""
+        self.receivers_bank = transfer_data.get("receivers_bank") if transfer_data.get("receivers_bank") else ""
+        self.receivers_agency = transfer_data.get("receivers_agency") if transfer_data.get("receivers_agency") else ""
+        self.receivers_account = transfer_data.get("receivers_account") if transfer_data.get("receivers_account") else ""
+        self.transfer_value = int(transfer_data.get("transfer_value")) if transfer_data.get("transfer_value") else 1
+        self.transfer_type = transfer_data.get("transfer_type") \
+            if transfer_data.get("transfer_type") else self._set_transfer_type()
+        if transfer_data.get("creation_date"):
             if isinstance(transfer_data["creation_date"], str):
                 transfer_data["creation_date"] = datetime.datetime. \
                     strptime(transfer_data["creation_date"], "%Y-%m-%dT%H:%M:%S")

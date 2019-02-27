@@ -76,5 +76,34 @@ def get_delete_update_transfer(request, transfer_id):
 @api_view(["GET"])
 def get_all_transfers(request):
     if request.method == 'GET':
-        all_transfers = list(Transfer.non_deleted_objects().values())
-        return Response(json.dumps(all_transfers), status=status.HTTP_200_OK)
+        all_transfers_as_dict = []
+        for transfer in Transfer.non_deleted_objects().all():
+            all_transfers_as_dict.append(transfer.as_dict())
+        return Response(json.dumps(all_transfers_as_dict), status=status.HTTP_200_OK)
+
+@api_view(["GET"])
+def filter_transfers(request, filter_type, filter):
+    if request.method == 'GET':
+        filtered_transfers_as_dict = []
+        if filter_type == "date":
+            filtered_transfers = Transfer.non_deleted_objects().filter(creation_date__contains=filter)
+        elif filter_type == "payer":
+            filtered_transfers = Transfer.non_deleted_objects().filter(payers_name=filter)
+        elif filter_type == "receiver":
+            filtered_transfers = Transfer.non_deleted_objects().filter(receivers_name=filter)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        for transfer in filtered_transfers:
+            filtered_transfers_as_dict.append(transfer.as_dict())
+
+        return Response(json.dumps(filtered_transfers_as_dict), status=status.HTTP_200_OK)
+
+@api_view(["GET"])
+def get_transfer_total(request):
+    if request.method == 'GET':
+        all_transfers = Transfer.non_deleted_objects().all()
+        transfer_total = 0
+        for transfer in all_transfers:
+            transfer_total += transfer.transfer_value
+        return Response(json.dumps({'transfer_total': transfer_total}), status=status.HTTP_200_OK)
