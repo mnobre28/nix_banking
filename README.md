@@ -1,0 +1,4 @@
+- Crie um clone do repositório.
+- Abra na API de sua escolha. Requer python 3.7.
+- Execute " pip install -r requirements.txt " para instalar as dependências.
+- Execute "python manage.py runserver" ou para testes executar testes, "python manage.py test".
